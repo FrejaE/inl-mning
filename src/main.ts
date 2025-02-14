@@ -5,13 +5,9 @@
   */
 
 function getLength(jumpings: number[]): number {
-  let totalNumber = 0;
-
-  totalNumber = jumpings.reduce(
+  return jumpings.reduce(
     (jumpDistanceSoFar, currentJump) => jumpDistanceSoFar + currentJump
   );
-
-  return totalNumber;
 }
 
 /*
@@ -28,17 +24,9 @@ class Student {
 
 function getStudentStatus(student: Student): string {
   student.passed =
-    student.name == "Sebastian"
-      ? student.handedInOnTime
-        ? true
-        : false
-      : false;
+    student.name === "Sebastian" ? student.handedInOnTime : false;
 
-  if (student.passed) {
-    return "VG";
-  } else {
-    return "IG";
-  }
+  return student.passed ? "vg" : "ig";
 }
 
 /*
@@ -46,22 +34,26 @@ function getStudentStatus(student: Student): string {
     Det finns flera code smells att identifiera här. Vissa är lurigare än andra.
     */
 
-class Temp {
-  constructor(public q: string, public where: Date, public v: number) {}
+class CityTemp {
+  constructor(
+    public city: string,
+    public date: Date,
+    public temperature: number
+  ) {}
 }
 
-function averageWeeklyTemperature(heights: Temp[]) {
-  let r = 0;
+function averageWeeklyTemperature(cityTemps: CityTemp[]) {
+  let result = 0;
 
-  for (let who = 0; who < heights.length; who++) {
-    if (heights[who].q === "Stockholm") {
-      if (heights[who].where.getTime() > Date.now() - 604800000) {
-        r += heights[who].v;
+  for (let i = 0; i < cityTemps.length; i++) {
+    if (cityTemps[i].city === "Stockholm") {
+      if (cityTemps[i].date.getTime() > Date.now() - 604800000) {
+        result += cityTemps[i].temperature;
       }
     }
   }
 
-  return r / 7;
+  return result / 7;
 }
 
 /*
@@ -69,26 +61,26 @@ function averageWeeklyTemperature(heights: Temp[]) {
     Se om du kan göra det bättre. Inte bara presentationen räknas, även strukturer.
     */
 
-function showProduct(
-  name: string,
-  price: number,
-  amount: number,
-  description: string,
-  image: string,
-  parent: HTMLElement
-) {
+class ShowProduct {
+  constructor(
+    public name: string,
+    public price: number,
+    public image: string,
+    public parent: HTMLElement
+  ) {}
+}
+function showProduct({ name, price, image, parent }: ShowProduct) {
   let container = document.createElement("div");
   let title = document.createElement("h4");
-  let pris = document.createElement("strong");
+  let cost = document.createElement("p");
   let imageTag = document.createElement("img");
 
   title.innerHTML = name;
-  pris.innerHTML = price.toString();
+  cost.innerHTML = price.toString();
   imageTag.src = image;
+  imageTag.alt = name;
 
-  container.appendChild(title);
-  container.appendChild(imageTag);
-  container.appendChild(pris);
+  container.append(title, imageTag, cost);
   parent.appendChild(container);
 }
 
@@ -97,27 +89,25 @@ function showProduct(
     går att göra betydligt bättre. Gör om så många som du kan hitta!
     */
 function presentStudents(students: Student[]) {
-  for (const student of students) {
-    if (student.handedInOnTime) {
-      let container = document.createElement("div");
-      let checkbox = document.createElement("input");
-      checkbox.type = "checkbox";
-      checkbox.checked = true;
+  const listOfStudentPassed = document.querySelector("ul#passedstudents");
+  const listOfStudentFailed = document.querySelector("ul#failedstudents");
 
-      container.appendChild(checkbox);
-      let listOfStudents = document.querySelector("ul#passedstudents");
-      listOfStudents?.appendChild(container);
+  const createHTMLForStudent = (isPassed: boolean) => {
+    const container = document.createElement("div");
+    const checkbox = document.createElement("input");
+    checkbox.type = "checkbox";
+    checkbox.checked = isPassed;
+    container.appendChild(checkbox);
+
+    if (isPassed) {
+      listOfStudentPassed?.appendChild(container);
     } else {
-      let container = document.createElement("div");
-      let checkbox = document.createElement("input");
-      checkbox.type = "checkbox";
-      checkbox.checked = false;
-
-      container.appendChild(checkbox);
-      let listOfStudents = document.querySelector("ul#failedstudents");
-      listOfStudents?.appendChild(container);
+      listOfStudentFailed?.appendChild(container);
     }
-  }
+  };
+  students.forEach((student) => {
+    createHTMLForStudent(student.handedInOnTime);
+  });
 }
 
 /*
@@ -126,14 +116,7 @@ function presentStudents(students: Student[]) {
     Exemplet under löser problemet, men inte speciellt bra. Hur kan man göra istället?
     */
 function concatenateStrings() {
-  let result = "";
-  result += "Lorem";
-  result += "ipsum";
-  result += "dolor";
-  result += "sit";
-  result += "amet";
-
-  return result;
+  return "Lorem," + " ipsum," + " dolor," + " sit," + " amet";
 }
 
 /* 
@@ -142,15 +125,18 @@ function concatenateStrings() {
       fler och fler parametrar behöver läggas till? T.ex. avatar eller adress. Hitta en bättre
       lösning som är hållbar och skalar bättre. 
   */
-function createUser(
-  name: string,
-  birthday: Date,
-  email: string,
-  password: string
-) {
+class User {
+  constructor(
+    public name: string,
+    public birthday: Date,
+    public email: string,
+    public password: string
+  ) {}
+}
+function createUser(user: User) {
   // Validation
 
-  let ageDiff = Date.now() - birthday.getTime();
+  let ageDiff = Date.now() - user.birthday.getTime();
   let ageDate = new Date(ageDiff);
   let userAge = Math.abs(ageDate.getUTCFullYear() - 1970);
 
@@ -162,3 +148,9 @@ function createUser(
     return "Du är under 20 år";
   }
 }
+createUser({
+  name: "freja",
+  birthday: new Date(1995, 6, 11),
+  email: "hej",
+  password: "hejhfdj",
+});
