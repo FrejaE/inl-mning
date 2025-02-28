@@ -6,7 +6,8 @@
 
 function getLength(jumpings: number[]): number {
   return jumpings.reduce(
-    (jumpDistanceSoFar, currentJump) => jumpDistanceSoFar + currentJump
+    (jumpDistanceSoFar, currentJump) => jumpDistanceSoFar + currentJump,
+    0
   );
 }
 
@@ -42,18 +43,23 @@ class CityTemp {
   ) {}
 }
 
-function averageWeeklyTemperature(cityTemps: CityTemp[]) {
-  let result = 0;
+function averageWeeklyTemperature(cityTemps: CityTemp[]): number {
+  const oneWeekAgo = Date.now() - 604800000;
 
-  for (let i = 0; i < cityTemps.length; i++) {
-    if (cityTemps[i].city === "Stockholm") {
-      if (cityTemps[i].date.getTime() > Date.now() - 604800000) {
-        result += cityTemps[i].temperature;
-      }
-    }
+  const filteredTemps = cityTemps.filter(
+    (temp) => temp.city === "Stockholm" && temp.date.getTime() > oneWeekAgo
+  );
+
+  if (filteredTemps.length === 0) {
+    return NaN;
   }
 
-  return result / 7;
+  const totalTemperature = filteredTemps.reduce(
+    (sum, temp) => sum + temp.temperature,
+    0
+  );
+
+  return totalTemperature / filteredTemps.length;
 }
 
 /*
@@ -69,45 +75,38 @@ class ShowProduct {
     public parent: HTMLElement
   ) {}
 }
+
 function showProduct({ name, price, image, parent }: ShowProduct) {
-  let container = document.createElement("div");
-  let title = document.createElement("h4");
-  let cost = document.createElement("p");
-  let imageTag = document.createElement("img");
+  const productHTML = `
+    <div>
+      <h4>${name}</h4>
+      <img src="${image}" alt="${name}" />
+      <p>${price}</p>
+    </div>
+  `;
 
-  title.innerHTML = name;
-  cost.innerHTML = price.toString();
-  imageTag.src = image;
-  imageTag.alt = name;
-
-  container.append(title, imageTag, cost);
-  parent.appendChild(container);
+  parent.innerHTML += productHTML;
 }
 
 /*
     5. Följande funktion kommer presentera studenter. Men det finns ett antal saker som 
     går att göra betydligt bättre. Gör om så många som du kan hitta!
     */
+
 function presentStudents(students: Student[]) {
-  const listOfStudentPassed = document.querySelector("ul#passedstudents");
-  const listOfStudentFailed = document.querySelector("ul#failedstudents");
+  for (const student of students) {
+    let container = document.createElement("div");
+    let checkbox = Object.assign(document.createElement("input"), {
+      type: "checkbox",
+      checked: student.handedInOnTime,
+    });
 
-  const createHTMLForStudent = (isPassed: boolean) => {
-    const container = document.createElement("div");
-    const checkbox = document.createElement("input");
-    checkbox.type = "checkbox";
-    checkbox.checked = isPassed;
     container.appendChild(checkbox);
-
-    if (isPassed) {
-      listOfStudentPassed?.appendChild(container);
-    } else {
-      listOfStudentFailed?.appendChild(container);
-    }
-  };
-  students.forEach((student) => {
-    createHTMLForStudent(student.handedInOnTime);
-  });
+    let listOfStudents = document.querySelector(
+      student.handedInOnTime ? "ul#passedstudents" : "ul#failedstudents"
+    );
+    listOfStudents?.appendChild(container);
+  }
 }
 
 /*
@@ -115,9 +114,8 @@ function presentStudents(students: Student[]) {
     Lorem, ipsum, dolor, sit, amet
     Exemplet under löser problemet, men inte speciellt bra. Hur kan man göra istället?
     */
-function concatenateStrings() {
-  return "Lorem," + " ipsum," + " dolor," + " sit," + " amet";
-}
+const concatenateStrings = () =>
+  ["Lorem", "ipsum", "dolor", "sit", "amet"].join(" ");
 
 /* 
   7. Denna funktion skall kontrollera att en användare är över 20 år och göra någonting.
@@ -130,27 +128,27 @@ class User {
     public name: string,
     public birthday: Date,
     public email: string,
-    public password: string
+    public password: string,
+    public avatar?: string,
+    public address?: string
   ) {}
-}
-function createUser(user: User) {
-  // Validation
 
-  let ageDiff = Date.now() - user.birthday.getTime();
-  let ageDate = new Date(ageDiff);
-  let userAge = Math.abs(ageDate.getUTCFullYear() - 1970);
-
-  console.log(userAge);
-
-  if (!(userAge < 20)) {
-    // Logik för att skapa en användare
-  } else {
-    return "Du är under 20 år";
+  // beräkna ålder
+  get age(): number {
+    const ageDiff = Date.now() - this.birthday.getTime();
+    const ageDate = new Date(ageDiff);
+    return Math.abs(ageDate.getUTCFullYear() - 1970);
+  }
+  // validering
+  validateAge(minAge: number): boolean {
+    return this.age >= minAge;
   }
 }
-createUser({
-  name: "freja",
-  birthday: new Date(1995, 6, 11),
-  email: "hej",
-  password: "hejhfdj",
-});
+
+// Funktion för att skapa användare
+function createUser(user: User): string {
+  if (!user.validateAge(20)) {
+    return "Du är under 20 år och kan inte skapa ett konto.";
+  }
+  return "Användare skapad!";
+}
